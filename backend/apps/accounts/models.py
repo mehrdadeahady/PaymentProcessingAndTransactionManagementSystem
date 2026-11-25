@@ -1,40 +1,35 @@
-# Django's built-in abstract user model.
-#
-# We extend it because fintech systems almost
-# always require custom authentication logic.
-from django.contrib.auth.models import AbstractUser
+# Django user base model.
+from django.contrib.auth.models import (
+    AbstractUser
+)
 
-# Django ORM base classes.
+# Django ORM.
 from django.db import models
 
 
-class User(AbstractUser):
+class User(
+    AbstractUser
+):
     """
-    Custom User model.
+    Custom user model.
 
-    Why not use Django's default User?
-
-    FinTech systems usually need:
-
-    - custom fields
-    - KYC information
-    - verification status
-    - customer risk scores
-    - government IDs
+    Authentication is based
+    on email address.
     """
 
-    # Email should be unique because
-    # we want users to login with email.
+    # Unique email.
     email = models.EmailField(
         unique=True
     )
 
-    # Instead of username,
-    # authentication uses email.
+    # Use email for login.
     USERNAME_FIELD = "email"
 
-    # Required when creating superusers.
-    REQUIRED_FIELDS = ["username"]
+    # Required for admin user.
+    REQUIRED_FIELDS = [
+        "username"
+    ]
 
     def __str__(self):
+
         return self.email

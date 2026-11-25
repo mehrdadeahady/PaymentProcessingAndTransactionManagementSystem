@@ -9,7 +9,7 @@ import {
   Link
 } from "react-router-dom";
 
-// Material UI components.
+// Material UI.
 import {
 
   Container,
@@ -28,27 +28,16 @@ import {
 
 } from "@mui/material";
 
-// Authentication service.
+// Auth service.
 import authService from
   "../services/authService";
 
 
-/**
- * Registration page.
- *
- * Responsibilities:
- *
- * - Create user account
- * - Create wallet
- * - Redirect to login
- */
 export default function RegisterPage() {
 
-  // Router navigation.
   const navigate =
     useNavigate();
 
-  // Form values.
   const [email,
     setEmail
   ] = useState("");
@@ -61,35 +50,28 @@ export default function RegisterPage() {
     setPassword
   ] = useState("");
 
-  // Success message.
   const [success,
     setSuccess
   ] = useState("");
 
-  // Error message.
   const [error,
     setError
   ] = useState("");
 
-  /**
-   * Register account.
-   */
   const handleSubmit =
     async (
-      event: React.FormEvent
+      event:
+      React.FormEvent
     ) => {
 
-      // Prevent page refresh.
       event.preventDefault();
 
-      // Clear messages.
       setError("");
 
       setSuccess("");
 
       try {
 
-        // Call backend.
         await authService.register({
 
           email,
@@ -99,12 +81,10 @@ export default function RegisterPage() {
           password
         });
 
-        // Success feedback.
         setSuccess(
           "Account created successfully."
         );
 
-        // Redirect after success.
         setTimeout(
 
           () => {
@@ -135,35 +115,28 @@ export default function RegisterPage() {
       <Paper
 
         sx={{
-
           mt: 8,
-
           p: 4
         }}
 
       >
 
         <Typography
-
           variant="h4"
-
           gutterBottom
-
         >
           Create Account
         </Typography>
 
         {
+
           success && (
 
             <Alert
-
               severity="success"
-
               sx={{
                 mt: 2
               }}
-
             >
               {success}
             </Alert>
@@ -171,16 +144,14 @@ export default function RegisterPage() {
         }
 
         {
+
           error && (
 
             <Alert
-
               severity="error"
-
               sx={{
                 mt: 2
               }}
-
             >
               {error}
             </Alert>
@@ -207,11 +178,13 @@ export default function RegisterPage() {
 
             label="Email"
 
+            type="email"
+
             value={email}
 
-            onChange={(event) =>
+            onChange={(e) =>
               setEmail(
-                event.target.value
+                e.target.value
               )
             }
 
@@ -229,9 +202,9 @@ export default function RegisterPage() {
 
             value={username}
 
-            onChange={(event) =>
+            onChange={(e) =>
               setUsername(
-                event.target.value
+                e.target.value
               )
             }
 
@@ -251,9 +224,9 @@ export default function RegisterPage() {
 
             value={password}
 
-            onChange={(event) =>
+            onChange={(e) =>
               setPassword(
-                event.target.value
+                e.target.value
               )
             }
 
@@ -261,9 +234,9 @@ export default function RegisterPage() {
 
           <Button
 
-            fullWidth
-
             type="submit"
+
+            fullWidth
 
             variant="contained"
 
@@ -276,24 +249,6 @@ export default function RegisterPage() {
           </Button>
 
         </Box>
-
-        <Typography
-          sx={{
-            mt: 2
-          }}
-        >
-
-          Already have an account?
-
-          {" "}
-
-          <Link
-            to="/login"
-          >
-            Login
-          </Link>
-
-        </Typography>
 
       </Paper>
 

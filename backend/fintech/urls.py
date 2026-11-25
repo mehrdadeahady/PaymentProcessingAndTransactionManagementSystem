@@ -1,50 +1,34 @@
-from django.contrib import admin
+# URL helpers.
+from django.urls import path
 
-from django.urls import (
-    include,
-    path
+# Views.
+from .views import (
+
+    RegisterAPIView,
+
+    EmailTokenObtainAPIView
 )
 
-# JWT authentication endpoints.
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
 
 urlpatterns = [
 
-    # Django admin.
+    # Registration.
     path(
-        "admin/",
-        admin.site.urls
+
+        "register/",
+
+        RegisterAPIView.as_view(),
+
+        name="register"
     ),
 
-    # Accounts APIs.
+    # Email login.
     path(
-        "api/accounts/",
-        include(
-            "apps.accounts.urls"
-        )
-    ),
 
-    # Authentication.
-    path(
-        "api/token/",
-        TokenObtainPairView.as_view(),
-        name="token_obtain_pair"
-    ),
+        "login/",
 
-    path(
-        "api/token/refresh/",
-        TokenRefreshView.as_view(),
-        name="token_refresh"
-    ),
+        EmailTokenObtainAPIView.as_view(),
 
-    # Transaction APIs.
-    path(
-        "api/transactions/",
-        include(
-            "apps.transactions.urls"
-        )
+        name="login"
     ),
 ]

@@ -1,28 +1,50 @@
+# DRF response helpers.
 from rest_framework import status
 
-from rest_framework.response import Response
+# Permissions.
+from rest_framework.permissions import (
+    AllowAny
+)
 
-from rest_framework.views import APIView
+# API responses.
+from rest_framework.response import (
+    Response
+)
 
-from apps.wallets.models import Wallet
+# Base view.
+from rest_framework.views import (
+    APIView
+)
 
+# Wallet model.
+from apps.wallets.models import (
+    Wallet
+)
+
+# Serializers.
 from .serializers import (
-    UserRegistrationSerializer
+
+    UserRegistrationSerializer,
+
+    EmailTokenObtainSerializer
 )
 
 
-class RegisterAPIView(APIView):
-
+class RegisterAPIView(
+    APIView
+):
     """
-    Create user account
-    and user wallet.
+    Register user.
     """
 
-    authentication_classes = []
+    permission_classes = [
+        AllowAny
+    ]
 
-    permission_classes = []
-
-    def post(self, request):
+    def post(
+        self,
+        request
+    ):
 
         serializer = (
             UserRegistrationSerializer(
@@ -36,15 +58,49 @@ class RegisterAPIView(APIView):
 
         user = serializer.save()
 
-        # Create wallet automatically
-        Wallet.objects.create(
+        # Create wallet.
+        Wallet.objects.get_or_create(
             user=user
         )
 
         return Response(
+
             {
                 "message":
                 "User created successfully"
             },
-            status=status.HTTP_201_CREATED
+
+            status=
+            status.HTTP_201_CREATED
+        )
+
+
+class EmailTokenObtainAPIView(
+    APIView
+):
+    """
+    Email login endpoint.
+    """
+
+    permission_classes = [
+        AllowAny
+    ]
+
+    def post(
+        self,
+        request
+    ):
+
+        serializer = (
+            EmailTokenObtainSerializer(
+                data=request.data
+            )
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        return Response(
+            serializer.validated_data
         )

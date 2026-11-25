@@ -1,39 +1,10 @@
-"""
-Transaction Service Layer
-
-Purpose:
-
-Keep business logic outside views.
-
-Views should:
-
-- Receive requests
-- Validate data
-- Return responses
-
-Services should:
-
-- Execute business rules
-- Validate balances
-- Prevent duplicates
-- Create transactions
-- Write audit logs
-
-This pattern is commonly used in
-production Django applications.
-"""
-
-# Decimal is required for money.
-#
-# Never use float for currency.
+# Decimal money support.
 from decimal import Decimal
 
-# Database transaction support.
-#
-# Allows atomic operations.
+# Database transactions.
 from django.db import transaction
 
-# Audit logging.
+# Auditing.
 from apps.audit.models import (
     AuditLog
 )
@@ -50,29 +21,18 @@ from .models import Transaction
 class TransactionException(
     Exception
 ):
-    """
-    Base transaction exception.
-    """
     pass
 
 
 class InsufficientFundsException(
     TransactionException
 ):
-    """
-    Raised when user balance
-    is lower than requested amount.
-    """
     pass
 
 
 class InvalidTransferException(
     TransactionException
 ):
-    """
-    Raised when business rules
-    are violated.
-    """
     pass
 
 
@@ -82,60 +42,32 @@ def validate_transfer(
     amount,
 ):
     """
-    Validate transfer request.
-
-    Rules:
-
-    - Sender cannot send to self
-    - Amount must be positive
-    - Amount must be greater than zero
+    Validate transfer.
     """
 
-    # Prevent self-transfer.
     if sender.id == receiver.id:
 
-        raise InvalidTransferException(
-            "You cannot transfer money "
-            "to yourself."
+        raise (
+            InvalidTransferException(
+                "Cannot transfer to yourself."
+            )
         )
 
-    # Prevent negative amounts.
     if amount <= Decimal("0.00"):
 
-        raise InvalidTransferException(
-            "Amount must be greater than zero."
+        raise (
+            InvalidTransferException(
+                "Amount must be greater than zero."
+            )
         )
-
-
-def get_wallet_balance(
-    user,
-):
-    """
-    Return current wallet balance.
-    """
-
-    wallet = Wallet.objects.get(
-        user=user
-    )
-
-    return wallet.balance
 
 
 def validate_sufficient_balance(
     sender,
-    amount,
+    amount
 ):
     """
-    Ensure sender has enough money.
-
-    Note:
-
-    Actual debit occurs later
-    inside Celery processing.
-
-    We still validate early
-    to avoid obviously invalid
-    requests.
+    Validate balance.
     """
 
     wallet = Wallet.objects.get(
@@ -144,8 +76,10 @@ def validate_sufficient_balance(
 
     if wallet.balance < amount:
 
-        raise InsufficientFundsException(
-            "Insufficient funds."
+        raise (
+            InsufficientFundsException(
+                "Insufficient funds."
+            )
         )
 
 
@@ -158,43 +92,32 @@ def create_transaction(
 ):
     """
     Create transaction.
-
-    Protected by:
-
-    - Database transaction
-    - Idempotency key
-    - Business validations
-
-    Returns transaction record.
     """
 
-    # Validate request.
     validate_transfer(
+
         sender,
         receiver,
         amount
     )
 
-    # Validate balance.
     validate_sufficient_balance(
+
         sender,
         amount
     )
 
-    # Check for duplicate request.
-    existing_transaction = (
+    existing = (
         Transaction.objects.filter(
-            idempotency_key=idempotency_key
+            idempotency_key=
+            idempotency_key
         ).first()
     )
 
-    # Return existing transaction
-    # if already processed.
-    if existing_transaction:
+    if existing:
 
-        return existing_transaction
+        return existing
 
-    # Create new transaction.
     tx = Transaction.objects.create(
 
         sender=sender,
@@ -207,10 +130,9 @@ def create_transaction(
         idempotency_key,
 
         status=
-        Transaction.Status.PENDING,
+        Transaction.Status.PENDING
     )
 
-    # Audit creation.
     AuditLog.objects.create(
 
         event_type=
@@ -223,9 +145,6 @@ def create_transaction(
 
         metadata={
 
-            "transaction_id":
-            tx.id,
-
             "sender":
             sender.id,
 
@@ -236,7 +155,7 @@ def create_transaction(
             str(amount),
 
             "idempotency_key":
-            str(idempotency_key),
+            str(idempotency_key)
         }
     )
 
@@ -244,10 +163,10 @@ def create_transaction(
 
 
 def get_transaction_by_id(
-    transaction_id,
+    transaction_id
 ):
     """
-    Retrieve transaction.
+    Get transaction.
     """
 
     return Transaction.objects.get(
@@ -256,42 +175,35 @@ def get_transaction_by_id(
 
 
 def get_user_transactions(
-    user,
+    user
 ):
     """
-    Return user transactions.
-
-    Includes:
-
-    - Sent transfers
-    - Received transfers
+    User transaction history.
     """
 
     return (
-        Transaction.objects
-        .filter(
+
+        Transaction.objects.filter(
             sender=user
         )
-        .union(
-            Transaction.objects.filter(
-                receiver=user
-            )
+
+        |
+
+        Transaction.objects.filter(
+            receiver=user
         )
-        .order_by(
-            "-created_at"
-        )
+
+    ).distinct().order_by(
+        "-created_at"
     )
 
 
 def mark_transaction_failed(
     transaction_id,
-    reason,
+    reason
 ):
     """
-    Mark transaction failed.
-
-    Used when business process
-    encounters unrecoverable failure.
+    Mark failed.
     """
 
     tx = Transaction.objects.get(
@@ -329,12 +241,10 @@ def mark_transaction_failed(
 
 def mark_transaction_success(
     transaction_id,
-    provider_reference,
+    provider_reference
 ):
     """
-    Mark transaction successful.
-
-    Store provider transaction id.
+    Mark successful.
     """
 
     tx = Transaction.objects.get(

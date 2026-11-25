@@ -1,7 +1,7 @@
-// Shared HTTP client.
+// Shared API client.
 import api from "../api/axios";
 
-// Authentication types.
+// Auth types.
 import type {
 
   LoginResponse,
@@ -11,24 +11,8 @@ import type {
 } from "../types/auth";
 
 
-/**
- * Authentication service.
- *
- * Responsibilities:
- *
- * - Login
- * - Register
- * - Logout
- * - Token storage
- *
- * Keeps authentication logic
- * out of React pages.
- */
 class AuthService {
 
-  /**
-   * Login user.
-   */
   async login(
 
     email: string,
@@ -37,11 +21,10 @@ class AuthService {
 
   ): Promise<LoginResponse> {
 
-    // Request JWT tokens.
     const response =
       await api.post(
 
-        "/api/token/",
+        "/api/accounts/login/",
 
         {
           email,
@@ -49,7 +32,6 @@ class AuthService {
         }
       );
 
-    // Store tokens.
     localStorage.setItem(
 
       "access_token",
@@ -67,9 +49,6 @@ class AuthService {
     return response.data;
   }
 
-  /**
-   * Register account.
-   */
   async register(
 
     payload: RegisterRequest
@@ -87,9 +66,6 @@ class AuthService {
     return response.data;
   }
 
-  /**
-   * Logout user.
-   */
   logout(): void {
 
     localStorage.removeItem(
@@ -101,9 +77,6 @@ class AuthService {
     );
   }
 
-  /**
-   * Check authentication state.
-   */
   isAuthenticated(): boolean {
 
     return Boolean(
@@ -113,10 +86,8 @@ class AuthService {
     );
   }
 
-  /**
-   * Get access token.
-   */
   getAccessToken():
+
   string | null {
 
     return localStorage.getItem(
@@ -124,10 +95,8 @@ class AuthService {
     );
   }
 
-  /**
-   * Get refresh token.
-   */
   getRefreshToken():
+
   string | null {
 
     return localStorage.getItem(
@@ -136,8 +105,6 @@ class AuthService {
   }
 }
 
-
-// Singleton instance.
 const authService =
   new AuthService();
 

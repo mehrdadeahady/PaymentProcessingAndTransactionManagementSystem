@@ -1,4 +1,4 @@
-// React context utilities.
+// React context helpers.
 import {
 
   useContext,
@@ -9,9 +9,7 @@ import {
 
 // Auth context.
 import {
-
   AuthContext
-
 } from "../context/AuthContext";
 
 // Auth service.
@@ -19,37 +17,24 @@ import authService from
   "../services/authService";
 
 
-/**
- * Authentication hook.
- *
- * Responsibilities:
- *
- * - Login
- * - Logout
- * - Auth state
- * - Loading state
- *
- * Components should use
- * this hook instead of
- * talking directly to
- * AuthContext.
- */
 export const useAuth = () => {
 
-  // Load auth context.
   const context =
     useContext(
       AuthContext
     );
 
-  // Request state.
   const [loading,
     setLoading
   ] = useState(false);
 
-  /**
-   * Login user.
-   */
+  if (!context) {
+
+    throw new Error(
+      "useAuth must be used within AuthProvider"
+    );
+  }
+
   const login = async (
 
     email: string,
@@ -62,7 +47,6 @@ export const useAuth = () => {
 
       setLoading(true);
 
-      // Authenticate.
       const result =
         await authService.login(
 
@@ -71,7 +55,6 @@ export const useAuth = () => {
           password
         );
 
-      // Update context.
       context.loginUser(
         result.access
       );
@@ -84,9 +67,6 @@ export const useAuth = () => {
     }
   };
 
-  /**
-   * Logout user.
-   */
   const logout = () => {
 
     authService.logout();
@@ -106,6 +86,6 @@ export const useAuth = () => {
 
     login,
 
-    logout,
+    logout
   };
 };

@@ -1,37 +1,26 @@
-// React node type.
-import { ReactNode } from "react";
+// React support.
+import {
+  ReactNode
+} from "react";
 
-// Router redirect component.
+// Router navigation.
 import {
   Navigate
 } from "react-router-dom";
 
-// Authentication hook.
+// Auth hook.
 import {
   useAuth
 } from "../hooks/useAuth";
 
 
-// Component properties.
 interface ProtectedRouteProps {
 
-  // Wrapped component.
-  children: ReactNode;
+  children:
+  ReactNode;
 }
 
 
-/**
- * Route guard.
- *
- * Prevents access to pages
- * unless user is authenticated.
- *
- * Example:
- *
- * /dashboard
- *
- * /transfer
- */
 export default function ProtectedRoute(
 
   {
@@ -40,22 +29,26 @@ export default function ProtectedRoute(
 
 ) {
 
-  // Current auth state.
   const {
     isAuthenticated
   } = useAuth();
 
-  // User not logged in.
-  if (!isAuthenticated) {
+  if (
+    !isAuthenticated
+  ) {
 
     return (
+
       <Navigate
+
         to="/login"
+
         replace
+
       />
+
     );
   }
 
-  // User authenticated.
   return <>{children}</>;
 }

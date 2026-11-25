@@ -1,4 +1,4 @@
-// Material UI components.
+// Material UI table controls.
 import {
 
   Paper,
@@ -19,35 +19,19 @@ import {
 
 } from "@mui/material";
 
-
-// Transaction type.
+// Transaction model.
 import type {
-
   Transaction
-
 } from "../types/transaction";
 
 
-// Component properties.
 interface TransactionTableProps {
 
-  // Transactions to display.
-  transactions: Transaction[];
+  transactions:
+  Transaction[];
 }
 
 
-/**
- * Transaction history table.
- *
- * Displays:
- *
- * - Transaction ID
- * - Amount
- * - Status
- * - Retry Count
- * - Manual Review Flag
- * - Creation Date
- */
 export default function TransactionTable(
 
   {
@@ -99,7 +83,7 @@ export default function TransactionTable(
             </TableCell>
 
             <TableCell>
-              Created At
+              Created
             </TableCell>
 
           </TableRow>
@@ -109,7 +93,9 @@ export default function TransactionTable(
         <TableBody>
 
           {
+
             transactions.map(
+
               (
                 transaction
               ) => (
@@ -131,9 +117,11 @@ export default function TransactionTable(
                     $
 
                     {
+
                       Number(
                         transaction.amount
                       ).toLocaleString()
+
                     }
 
                   </TableCell>
@@ -194,7 +182,6 @@ export default function TransactionTable(
                   </TableCell>
 
                 </TableRow>
-
               )
             )
           }

@@ -1,52 +1,69 @@
-# Generates UUID values.
+# UUID support.
 import uuid
 
-# Django model lookup helper.
-from django.shortcuts import get_object_or_404
+# Django helpers.
+from django.shortcuts import (
+    get_object_or_404
+)
 
-# DRF response utilities.
-from rest_framework.response import Response
-
+# DRF.
 from rest_framework import status
 
 from rest_framework.permissions import (
     IsAuthenticated
 )
 
-from rest_framework.views import APIView
+from rest_framework.response import (
+    Response
+)
 
-# User model.
-from apps.accounts.models import User
+from rest_framework.views import (
+    APIView
+)
 
-# Business logic.
-from .services import create_transaction
+# Models.
+from apps.accounts.models import (
+    User
+)
 
-# Async processor.
-from .tasks import process_transaction
+# Services.
+from .services import (
+    create_transaction
+)
 
-# Validators.
+# Tasks.
+from .tasks import (
+    process_transaction
+)
+
+# Transaction model.
+from .models import Transaction
+
+# Serializers.
 from .serializers import (
-    CreateTransactionSerializer
+
+    CreateTransactionSerializer,
+
+    TransactionSerializer
 )
 
 
-class TransferAPIView(APIView):
+class TransferAPIView(
+    APIView
+):
     """
-    Creates transfer.
-
-    POST
-
-    /api/transactions/transfer/
+    Transfer endpoint.
     """
 
-    # Only authenticated users.
     permission_classes = [
         IsAuthenticated
     ]
 
-    def post(self, request):
+    def post(
+        self,
+        request
+    ):
 
-        # Validate payload.
         serializer = (
             CreateTransactionSerializer(
                 data=request.data
@@ -57,22 +74,25 @@ class TransferAPIView(APIView):
             raise_exception=True
         )
 
-        # Find receiver.
-        receiver = get_object_or_404(
-            User,
-            id=serializer.validated_data[
-                "receiver_id"
+        receiver = (
+            get_object_or_404(
+
+                User,
+
+                id=serializer
+                .validated_data[
+                    "receiver_id"
+                ]
+            )
+        )
+
+        amount = (
+            serializer
+            .validated_data[
+                "amount"
             ]
         )
 
-        # Get amount.
-        amount = serializer.validated_data[
-            "amount"
-        ]
-
-        # Read idempotency header.
-        #
-        # Prevents duplicate requests.
         idempotency_key = (
             request.headers.get(
                 "Idempotency-Key",
@@ -80,26 +100,134 @@ class TransferAPIView(APIView):
             )
         )
 
-        # Create transaction.
         tx = create_transaction(
+
             sender=request.user,
+
             receiver=receiver,
+
             amount=amount,
-            idempotency_key=idempotency_key
+
+            idempotency_key=
+            idempotency_key
         )
 
-        # Background processing.
-        #
-        # API returns immediately
-        # without waiting.
         process_transaction.delay(
             tx.id
         )
 
         return Response(
+
             {
-                "transaction_id": tx.id,
-                "status": tx.status
+
+                "transaction_id":
+                tx.id,
+
+                "status":
+                tx.status
             },
-            status=status.HTTP_201_CREATED
+
+            status=
+            status.HTTP_201_CREATED
+        )
+
+
+class TransactionListAPIView(
+    APIView
+):
+    """
+    List user transactions.
+    """
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(
+        self,
+        request
+    ):
+
+        transactions = (
+
+            Transaction.objects.filter(
+                sender=request.user
+            )
+
+            |
+
+            Transaction.objects.filter(
+                receiver=request.user
+            )
+
+        ).distinct().order_by(
+            "-created_at"
+        )
+
+        serializer = (
+            TransactionSerializer(
+
+                transactions,
+
+                many=True
+            )
+        )
+
+        return Response(
+            serializer.data
+        )
+
+
+class TransactionDetailAPIView(
+    APIView
+):
+    """
+    Transaction detail.
+    """
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(
+        self,
+        request,
+        transaction_id
+    ):
+
+        transaction = (
+            get_object_or_404(
+
+                Transaction,
+
+                id=transaction_id
+            )
+        )
+
+        if (
+            transaction.sender
+            != request.user
+            and
+            transaction.receiver
+            != request.user
+        ):
+
+            return Response(
+
+                {
+                    "detail":
+                    "Not found."
+                },
+
+                status=404
+            )
+
+        serializer = (
+            TransactionSerializer(
+                transaction
+            )
+        )
+
+        return Response(
+            serializer.data
         )

@@ -1,5 +1,9 @@
-from rest_framework import serializers
+# DRF serializers.
+from rest_framework import (
+    serializers
+)
 
+# Models.
 from .models import Transaction
 
 
@@ -7,23 +11,20 @@ class CreateTransactionSerializer(
     serializers.Serializer
 ):
     """
-    Input validation.
-
-    Incoming request:
-
-    {
-        "receiver_id": 2,
-        "amount": "100.00"
-    }
+    Transfer request.
     """
 
-    # Receiver user id.
-    receiver_id = serializers.IntegerField()
+    receiver_id = (
+        serializers.IntegerField()
+    )
 
-    # Transfer amount.
-    amount = serializers.DecimalField(
-        max_digits=15,
-        decimal_places=2
+    amount = (
+        serializers.DecimalField(
+
+            max_digits=15,
+
+            decimal_places=2
+        )
     )
 
 
@@ -31,12 +32,38 @@ class TransactionSerializer(
     serializers.ModelSerializer
 ):
     """
-    Converts Transaction model
-    into API response.
+    Transaction response.
     """
 
     class Meta:
 
         model = Transaction
 
-        fields = "__all__"
+        fields = (
+
+            "id",
+
+            "sender",
+
+            "receiver",
+
+            "amount",
+
+            "status",
+
+            "retry_count",
+
+            "provider_reference",
+
+            "manual_review_required",
+
+            "created_at",
+
+            "updated_at",
+        )
+
+        read_only_fields = (
+            "id",
+            "created_at",
+            "updated_at",
+        )

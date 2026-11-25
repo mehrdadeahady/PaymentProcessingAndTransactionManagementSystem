@@ -1,17 +1,15 @@
-// React state management.
+// React hooks.
 import {
-
-  useEffect,
 
   useState
 
 } from "react";
 
-// Transaction service.
-import transactionService from
-  "../services/transactionService";
+// Service layer.
+import transactionService
+from "../services/transactionService";
 
-// Transaction models.
+// Types.
 import type {
 
   Transaction,
@@ -21,47 +19,27 @@ import type {
   CreateTransferResponse
 
 } from
-  "../types/transaction";
+"../types/transaction";
 
 
-/**
- * Transaction hook.
- *
- * Responsibilities:
- *
- * - Load transactions
- * - Create transfers
- * - Refresh status
- * - Handle loading state
- *
- * Pages should consume
- * this hook instead of
- * calling services directly.
- */
 export const useTransactions = () => {
 
-  // Transaction collection.
   const [transactions,
     setTransactions
   ] = useState<Transaction[]>(
     []
   );
 
-  // Loading state.
   const [loading,
     setLoading
   ] = useState(false);
 
-  // Request errors.
   const [error,
     setError
   ] = useState<
     string | null
   >(null);
 
-  /**
-   * Load transaction history.
-   */
   const loadTransactions =
     async () => {
 
@@ -71,18 +49,18 @@ export const useTransactions = () => {
 
         setError(null);
 
-        const data =
+        const result =
           await transactionService
             .getTransactions();
 
         setTransactions(
-          data
+          result
         );
 
-      } catch (err) {
+      } catch {
 
         setError(
-          "Failed to load transactions"
+          "Failed to load transactions."
         );
 
       } finally {
@@ -91,9 +69,6 @@ export const useTransactions = () => {
       }
     };
 
-  /**
-   * Create transfer.
-   */
   const createTransfer =
     async (
 
@@ -104,19 +79,15 @@ export const useTransactions = () => {
       CreateTransferResponse
     > => {
 
-      setLoading(true);
-
       try {
+
+        setLoading(true);
 
         const result =
           await transactionService
             .createTransfer(
               payload
             );
-
-        // Refresh list after
-        // transaction creation.
-        await loadTransactions();
 
         return result;
 
@@ -126,15 +97,6 @@ export const useTransactions = () => {
       }
     };
 
-  /**
-   * Refresh one transaction.
-   *
-   * Useful for:
-   *
-   * PENDING
-   * PROCESSING
-   * RETRYING
-   */
   const refreshTransaction =
     async (
       transactionId: number
@@ -147,28 +109,20 @@ export const useTransactions = () => {
           );
 
       setTransactions(
-        (previous) =>
-          previous.map(
-            (transaction) =>
+        (current) =>
 
-              transaction.id ===
+          current.map(
+            (item) =>
+
+              item.id ===
               transactionId
 
                 ? updated
 
-                : transaction
+                : item
           )
       );
     };
-
-  /**
-   * Load data automatically.
-   */
-  useEffect(() => {
-
-    loadTransactions();
-
-  }, []);
 
   return {
 
@@ -182,6 +136,6 @@ export const useTransactions = () => {
 
     createTransfer,
 
-    refreshTransaction,
+    refreshTransaction
   };
 };

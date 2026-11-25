@@ -1,4 +1,4 @@
-// React context utilities.
+// React context.
 import {
 
   createContext,
@@ -10,34 +10,30 @@ import {
 } from "react";
 
 
-// Context contract.
+// Auth contract.
 interface AuthContextType {
 
-  // JWT token.
   token:
     string | null;
 
-  // Logged-in state.
   isAuthenticated:
     boolean;
 
-  // Save token.
   loginUser:
     (
       token: string
     ) => void;
 
-  // Remove token.
   logoutUser:
     () => void;
 }
 
 
-// Create Auth Context.
+// Context instance.
 export const AuthContext =
-  createContext<AuthContextType>(
-    {} as AuthContextType
-  );
+  createContext<
+    AuthContextType | undefined
+  >(undefined);
 
 
 // Provider properties.
@@ -48,17 +44,6 @@ interface ProviderProps {
 }
 
 
-/**
- * Auth provider.
- *
- * Wraps entire app.
- *
- * Provides:
- *
- * - JWT state
- * - Login state
- * - Logout behavior
- */
 export const AuthProvider = (
 
   {
@@ -67,42 +52,33 @@ export const AuthProvider = (
 
 ) => {
 
-  // Initial token.
   const initialToken =
     localStorage.getItem(
       "access_token"
     );
 
-  // State.
   const [token,
     setToken
   ] = useState<
     string | null
   >(initialToken);
 
-  /**
-   * Login.
-   */
-  const loginUser =
-    (
-      accessToken: string
-    ) => {
+  const loginUser = (
+    accessToken: string
+  ) => {
 
-      localStorage.setItem(
+    localStorage.setItem(
 
-        "access_token",
+      "access_token",
 
-        accessToken
-      );
+      accessToken
+    );
 
-      setToken(
-        accessToken
-      );
-    };
+    setToken(
+      accessToken
+    );
+  };
 
-  /**
-   * Logout.
-   */
   const logoutUser =
     () => {
 
@@ -134,6 +110,7 @@ export const AuthProvider = (
       }}
 
     >
+
       {children}
 
     </AuthContext.Provider>
